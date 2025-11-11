@@ -1,25 +1,29 @@
 import os
-from aiogram import Bot, Dispatcher, executor, types
+import telebot
 
-# Берём токен из переменной окружения TOKEN (мы её добавим в Render)
+# Берём токен из переменной окружения TOKEN (мы уже добавили её в Render)
 TOKEN = os.getenv("TOKEN")
 
 if not TOKEN:
     raise RuntimeError("Не задан TOKEN в переменных окружения")
 
-bot = Bot(token=TOKEN)
-dp = Dispatcher(bot)
+bot = telebot.TeleBot(TOKEN, parse_mode="HTML")
 
 
-@dp.message_handler(commands=["start"])
-async def cmd_start(message: types.Message):
-    await message.answer("Привет! Я жив и работаю на Render 🤖")
+@bot.message_handler(commands=["start"])
+def handle_start(message: telebot.types.Message):
+    bot.send_message(
+        message.chat.id,
+        "Привет! Я жив и работаю на Render 🤖\n"
+        "Напиши мне что-нибудь, а я повторю."
+    )
 
 
-@dp.message_handler()
-async def echo(message: types.Message):
-    await message.answer(f"Ты написал: {message.text}")
+@bot.message_handler(content_types=["text"])
+def handle_text(message: telebot.types.Message):
+    bot.send_message(message.chat.id, f"Ты написал: <b>{message.text}</b>")
 
 
 if __name__ == "__main__":
-    executor.start_polling(dp, skip_updates=True)
+    print("Бот запущен...")
+    bot.infinity_polling()
